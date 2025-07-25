@@ -1,7 +1,10 @@
 [![wa-sqlite CI](https://github.com/rhashimoto/wa-sqlite/actions/workflows/ci.yml/badge.svg)](https://github.com/rhashimoto/wa-sqlite/actions/workflows/ci.yml)
 
-# wa-sqlite
+# wa-sqlite with sqlite-vec
+
 This is a WebAssembly build of SQLite with support for writing SQLite virtual filesystems completely in Javascript. This allows alternative browser storage options such as IndexedDB and Origin Private File System. Applications can opt to use either a synchronous or asynchronous (using Asyncify or JSPI) SQLite library build (an asynchronous build is required for asynchronous extensions).
+
+**This fork includes [sqlite-vec](https://github.com/asg017/sqlite-vec) built-in**, providing vector similarity search capabilities directly in SQLite running in the browser.
 
 IndexedDB and several Origin Private File System virtual file systems are among the examples provided as proof of concept. A table comparing the different VFS classes is [here](https://github.com/rhashimoto/wa-sqlite/tree/master/src/examples#vfs-comparison).
 
@@ -56,6 +59,55 @@ There is a slightly more complicated example [here](https://github.com/rhashimot
 The [implementation of `sqlite3.exec`](https://github.com/rhashimoto/wa-sqlite/blob/eb6e62584b2864d5029f51c6afe155d71ba0caa8/src/sqlite-api.js#L409-L418) may be of interest to anyone wanting more fine-grained use of SQLite statement objects (e.g. for binding parameters, explicit column datatypes, etc.).
 
 [API reference](https://rhashimoto.github.io/wa-sqlite/docs/)
+
+## sqlite-vec Extension
+
+The sqlite-vec extension is automatically initialized when opening a database, enabling:
+
+- **Vector Storage**: Store embeddings as `float[N]`, `int8[N]`, or `bit[N]` vectors
+- **Similarity Search**: Find nearest neighbors using L2, cosine, or Hamming distance
+- **Virtual Tables**: Use the `vec0` virtual table for efficient vector operations
+
+### Quick Example
+
+```javascript
+import SQLiteESMFactory from 'wa-sqlite/dist/wa-sqlite.mjs';
+import * as SQLite from 'wa-sqlite';
+
+async function vectorExample() {
+  const module = await SQLiteESMFactory();
+  const sqlite3 = SQLite.Factory(module);
+  const db = await sqlite3.open_v2(':memory:');
+  
+  // Create a vector table
+  await sqlite3.exec(db, `
+    CREATE VIRTUAL TABLE items USING vec0(
+      embedding float[384]
+    )
+  `);
+  
+  // Insert vectors (e.g., from text embeddings)
+  await sqlite3.exec(db, `
+    INSERT INTO items(rowid, embedding)
+    VALUES (1, ?), (2, ?)
+  `, null, vector1, vector2);
+  
+  // Find similar items
+  await sqlite3.exec(db, `
+    SELECT rowid, distance 
+    FROM items
+    WHERE embedding MATCH ?
+    ORDER BY distance
+    LIMIT 5
+  `, (row) => {
+    console.log(`Item ${row[0]}: distance = ${row[1]}`);
+  }, queryVector);
+  
+  await sqlite3.close(db);
+}
+```
+
+For more details, see the [sqlite-vec documentation](https://github.com/asg017/sqlite-vec).
 
 ## Demo
 To serve the demo directly from the source tree:

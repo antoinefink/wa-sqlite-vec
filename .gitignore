@@ -11,5 +11,6 @@
 
 /cache
 /debug
-/deps
+/deps/*
+!/deps/sqlite-vec
 /tmp

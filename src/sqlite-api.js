@@ -495,6 +495,13 @@ export function Factory(Module) {
         databases.add(db);
 
         Module.ccall('RegisterExtensionFunctions', 'void', ['number'], [db]);
+        
+        // Initialize sqlite-vec extension
+        const vecRc = Module.ccall('sqlite3_vec_init_wrapper', 'number', ['number'], [db]);
+        if (vecRc !== SQLite.SQLITE_OK) {
+          console.warn('Failed to initialize sqlite-vec extension:', vecRc);
+        }
+        
         check(fname, rc);
         return db;
       } finally {

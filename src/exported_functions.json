@@ -253,5 +253,7 @@
   "_sqlite3_wal_autocheckpoint",
   "_sqlite3_wal_checkpoint",
   "_sqlite3_wal_checkpoint_v2",
-  "_sqlite3_wal_hook"
+  "_sqlite3_wal_hook",
+  "_sqlite3_vec_init_wrapper",
+  "_getSqliteFree"
 ]

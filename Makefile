@@ -10,6 +10,7 @@ EXTENSION_FUNCTIONS_SHA3 = ee39ddf5eaa21e1d0ebcbceeab42822dd0c4f82d8039ce173fd48
 CFILES = \
 	sqlite3.c \
 	extension-functions.c \
+	sqlite-vec.c \
 	main.c \
 	libauthorizer.c \
 	libfunction.c \
@@ -28,6 +29,7 @@ JSFILES = \
 vpath %.c src
 vpath %.c deps
 vpath %.c deps/$(SQLITE_VERSION)
+vpath %.c deps/sqlite-vec
 
 EXPORTED_FUNCTIONS = src/exported_functions.json
 EXPORTED_RUNTIME_METHODS = src/extra_exported_runtime_methods.json
@@ -43,6 +45,7 @@ EMCC ?= emcc
 
 CFLAGS_COMMON = \
 	-I'deps/$(SQLITE_VERSION)' \
+	-I'deps/sqlite-vec' \
 	-Wno-non-literal-null-conversion \
 	$(CFLAGS_EXTRA)
 CFLAGS_DEBUG = -g $(CFLAGS_COMMON)
@@ -98,6 +101,7 @@ EMFLAGS_JSPI = \
 
 # https://www.sqlite.org/compile.html
 WASQLITE_DEFINES = \
+	-DSQLITE_CORE \
 	-DSQLITE_DEFAULT_MEMSTATUS=0 \
 	-DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1 \
 	-DSQLITE_DQS=0 \
@@ -106,7 +110,6 @@ WASQLITE_DEFINES = \
 	-DSQLITE_OMIT_AUTOINIT \
 	-DSQLITE_OMIT_DECLTYPE \
 	-DSQLITE_OMIT_DEPRECATED \
-	-DSQLITE_OMIT_LOAD_EXTENSION \
 	-DSQLITE_OMIT_SHARED_CACHE \
 	-DSQLITE_THREADSAFE=0 \
 	-DSQLITE_USE_ALLOCA \
